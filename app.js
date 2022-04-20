@@ -15,7 +15,7 @@ function dateSort(arr) {
   for(const i of arr) {
     let dateStr = i[0];
     const dateArr = dateStr.split(/\D/);
-    i[0] = Date.UTC(...dateArr).toString() + i[1];
+    i[0] = Date.UTC(...dateArr).toString() + i[1]; //.padStart(7, "0")
   }
   arr.sort((A, B) => {
     parseInt(A[0]) - parseInt(B[0]);
@@ -115,9 +115,10 @@ function biject(val) {
 }
 
 function app() {
+  const name = "base";
   let siteArr = csv2arr(fs.readFileSync("sitedata.csv", 'utf-8'));
   let rawArr = csv2arr(fs.readFileSync("rawdata.csv",'utf-8'));
-  let groupStr = fs.readFileSync("groupdata_base.csv",'utf-8'); // Column 9
+  let groupStr = fs.readFileSync("groupdata_" + name + ".csv",'utf-8'); // Column 9
 
   const site = analyzeSite(siteArr);
   const group = analyzeGroup(groupStr);
@@ -139,7 +140,7 @@ function app() {
     }
     ans.push(JSON.stringify(now));
   }
-  fs.writeFileSync("input_0316base.csv",ans.join("\n"));
+  fs.writeFileSync("input_0316" + name + ".csv",ans.join("\n"));
 }
 
 app();
