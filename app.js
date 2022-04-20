@@ -50,16 +50,22 @@ function analyzeSite(arr) {
   return site;
 }
 
-function analyzeGroup(arr) {
+function analyzeGroup(str) {
+  const arr = str.split("\r\n");
   let ret = [];
   for(let i = 0; i < arr.length; ++i) {
-    const list = arr[i][9].split(",");
+    const narr = arr[i].split("\"");
+    const list = narr[1].split(/\D/).slice(0,-1);
+    console.log(list);
     ret.push(list);
   }
   return ret;
 }
 
 function raw2input(val, site) {
+  if(site[val[2]] == undefined || site[val[2]][val[3]] == undefined) {
+    return null;
+  }
   let nowStr = {};
   nowStr["node"] = val[8];
   nowStr["datetime"] = val[0] + val[1];
@@ -100,32 +106,40 @@ function analyzeRaw(arr, site) {
   return output;
 }
 
+function biject(val) {
+  let ret = {};
+  for(let i = 0; i < val.length; ++i) {
+    ret[val[i][8]] = val[i];
+  }
+  return ret;
+}
 
 function app() {
   let siteArr = csv2arr(fs.readFileSync("sitedata.csv", 'utf-8'));
   let rawArr = csv2arr(fs.readFileSync("rawdata.csv",'utf-8'));
-  let groupArr = csv2arr(fs.readFileSync("groupdata.csv",'utf-8')); // Column 9
+  let groupStr = fs.readFileSync("groupdata_base.csv",'utf-8'); // Column 9
 
   const site = analyzeSite(siteArr);
-  const group = analyzeGroup(groupArr);
-  dateSort(rawArr);
-  const task = dataDiv(rawArr);
+  const group = analyzeGroup(groupStr);
+  const groupIndex = biject(rawArr);
   let ans = [];
-  for(let i = 0; i < task.length; ++i) {
-    if(analyzeRaw(task[i], site).length <= 3) {
+  for(let i = 0; i < group.length; ++i) {
+    let now = [];
+    for(let j = 0; j < group[i].length; ++j) {
+      if(groupIndex[group[i][j]] != undefined) {
+        const tmp = raw2input(groupIndex[group[i][j]], site);
+        if(tmp != null){
+          now.push(tmp);
+        }
+      }
+    }
+    console.log(now.length);
+    if(now.length < 3) {
       continue;
     }
-    // let ans = [];
-    for(let j = 0; j < CASE_NUM_MAX; ++j) {
-      const raw = analyzeRaw(task[i], site);
-      ans.push(JSON.stringify(raw));
-    }
-    // fs.writeFileSync("./res/input_" + i + ".csv", ans.join("\n"));
+    ans.push(JSON.stringify(now));
   }
-  ans.sort((A,B) => {
-    return 0.5 - Math.random();
-  })
-  fs.writeFileSync("input_comp.csv",ans.slice(0,10000).join("\n"));
+  fs.writeFileSync("input_0316base.csv",ans.join("\n"));
 }
 
 app();
