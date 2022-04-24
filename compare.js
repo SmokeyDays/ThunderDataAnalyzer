@@ -1,10 +1,14 @@
 const fs = require("fs");
 
 function csv2arr(str, div) {
-  str = str.split("\r\n");
+  str = str.split("\n");
   let arr = [];
   for(const i of str) {
-    arr.push(i.split(div));
+    const now = i.split(div);
+    now.forEach( (e) => {
+      e.trim();
+    })
+    arr.push(now);
   }
   return arr;
 }
@@ -59,8 +63,8 @@ function getDis(pos1, pos2) {
   return getFlatternDistance(pos1.x, pos1.y, pos2.x, pos2.y);
 }
 
-function compare(name) {
-  let outputArr = csv2arr(fs.readFileSync(name + ".out",'utf-8'), ", ");
+function compare_without_time(name) {
+  let outputArr = csv2arr(fs.readFileSync("out" + name + ".csv",'utf-8'), ", ");
   let resArr = csv2arr(fs.readFileSync("result.csv","utf-8"), ",");
   let count = 0;
   let p = 0;
@@ -78,5 +82,38 @@ function compare(name) {
   console.log(count);
 }
 
-compare("0316base");
-compare("0316li")
+function compare_with_time(name) {
+  let outputArr = csv2arr(fs.readFileSync("out" + name + ".csv",'utf-8'), ", ");
+  let resArr = csv2arr(fs.readFileSync("result.csv","utf-8"), ",");
+  let inputArr = csv2arr(fs.readFileSync("input_" + name + ".csv", "utf-8"), "\"");
+  for(let i = 0; i < outputArr.length; ++i) {
+    outputArr[i][0] = inputArr[i][7];
+  }
+  let count = 0;
+  let p = 0;
+  for(let j = 0; j < resArr.length; ++j) {
+    for(let i = 0; i < outputArr.length; ++i) {
+      if(outputArr[i][0] != resArr[j][0]) {
+        continue;
+      }
+      // if(outputArr[i][0].slice(0, -6) != resArr[j][0].slice(0, -6)) {
+      //   continue;
+      // }
+      // console.log(outputArr[i][0].slice(0, -6));
+      // console.log(resArr[j][0].slice(0, -6));
+      const dis = getDis({x: parseFloat(outputArr[i][2]), y: parseFloat(outputArr[i][3])},{x: parseFloat(resArr[j][2]), y: parseFloat(resArr[j][3])}) / 1000;
+      // console.log(dis);
+      if(dis <= 20) {
+        // console.log(dis);
+        // console.log({x: parseFloat(outputArr[i][2]), y: parseFloat(outputArr[i][3])},{x: parseFloat(resArr[j][2]), y: parseFloat(resArr[j][3])});
+        p = j + 1;
+        ++count;
+        break;
+      }
+    }
+  }
+  console.log(count);
+}
+
+compare_with_time("0316base");
+compare_with_time("0316li")

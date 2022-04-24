@@ -68,7 +68,7 @@ function raw2input(val, site) {
   }
   let nowStr = {};
   nowStr["node"] = val[8];
-  nowStr["datetime"] = val[0] + val[1];
+  nowStr["datetime"] = val[0];
   nowStr["microsecond"] = parseInt(val[1]);
   nowStr["signal_strength"] = parseFloat(val[5]);
   nowStr["longitude"] = parseFloat(site[val[2]][val[3]][1]);
@@ -114,8 +114,7 @@ function biject(val) {
   return ret;
 }
 
-function app() {
-  const name = "base";
+function app(name) {
   let siteArr = csv2arr(fs.readFileSync("sitedata.csv", 'utf-8'));
   let rawArr = csv2arr(fs.readFileSync("rawdata.csv",'utf-8'));
   let groupStr = fs.readFileSync("groupdata_" + name + ".csv",'utf-8'); // Column 9
@@ -143,4 +142,5 @@ function app() {
   fs.writeFileSync("input_0316" + name + ".csv",ans.join("\n"));
 }
 
-app();
+app("base");
+app("li");
