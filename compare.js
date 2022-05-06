@@ -83,37 +83,61 @@ function compare_without_time(name) {
 }
 
 function compare_with_time(name) {
-  let outputArr = csv2arr(fs.readFileSync("out" + name + ".csv",'utf-8'), ", ");
+  let outputArr = csv2arr(fs.readFileSync("output_" + name + ".csv",'utf-8'), ", ");
   let resArr = csv2arr(fs.readFileSync("result.csv","utf-8"), ",");
-  let inputArr = csv2arr(fs.readFileSync("input_" + name + ".csv", "utf-8"), "\"");
-  for(let i = 0; i < outputArr.length; ++i) {
-    outputArr[i][0] = inputArr[i][7];
-  }
+  // let inputArr = csv2arr(fs.readFileSync("input_" + name + ".csv", "utf-8"), "\"");
+  // for(let i = 0; i < outputArr.length; ++i) {
+  //   outputArr[i][0] = inputArr[i][7];
+  // }
   let count = 0;
-  let p = 0;
-  for(let j = 0; j < resArr.length; ++j) {
-    for(let i = 0; i < outputArr.length; ++i) {
+  let alldata = [];
+  for(let i = 0; i < outputArr.length; ++i) {
+    for(let j = 0; j < resArr.length; ++j) {
       if(outputArr[i][0] != resArr[j][0]) {
         continue;
       }
-      // if(outputArr[i][0].slice(0, -6) != resArr[j][0].slice(0, -6)) {
-      //   continue;
-      // }
-      // console.log(outputArr[i][0].slice(0, -6));
-      // console.log(resArr[j][0].slice(0, -6));
+      if(outputArr[i][1] > 1e8) {
+        outputArr[i][1] -= 1e8;
+      }
+      if(Math.abs(parseFloat(outputArr[i][1]) - parseFloat(resArr[j][1])) > 10000) {
+        continue;
+      }
       const dis = getDis({x: parseFloat(outputArr[i][2]), y: parseFloat(outputArr[i][3])},{x: parseFloat(resArr[j][2]), y: parseFloat(resArr[j][3])}) / 1000;
-      // console.log(dis);
-      if(dis <= 20) {
-        // console.log(dis);
+      // console.log(dis)
+      if(dis <= 2) {
         // console.log({x: parseFloat(outputArr[i][2]), y: parseFloat(outputArr[i][3])},{x: parseFloat(resArr[j][2]), y: parseFloat(resArr[j][3])});
-        p = j + 1;
+        alldata.push(outputArr[i]);
         ++count;
+        alldata.push(outputArr[i]);
         break;
       }
     }
   }
   console.log(count);
+  fs.writeFileSync("groupdata_" + name + ".csv", alldata.join("\n"));
 }
 
-compare_with_time("0316base");
-compare_with_time("0316li")
+function compare_gd_and_out(name) {
+  let outputArr = csv2arr(fs.readFileSync("groupdata_" + name + ".csv",'utf-8'), ",");
+  let groupansArr = csv2arr(fs.readFileSync("result.csv","utf-8"), ",");
+}
+
+function compare_wg_and_my(name) {
+  let wgArr = csv2arr(fs.readFileSync("groupdata_" + name + ".csv",'utf-8'), ",");
+  let myArr = csv2arr(fs.readFileSync("0316" + name + ".out","utf-8"), ", ");
+  let count = 0;
+  let diff = [];
+  for(let i = 0; i < wgArr.length; ++i) {
+    const time = Math.abs(parseFloat(wgArr[i][2]) - parseFloat(myArr[i][1]));
+    const dis = getDis({x: parseFloat(wgArr[i][3]), y: parseFloat(wgArr[i][4])},{x: parseFloat(myArr[i][3]), y: parseFloat(myArr[i][2])}) / 1000;
+    diff.push([time, dis].join(","));
+    if(dis <= 2) {
+      ++count;
+    }
+  }
+  console.log(count);
+  fs.writeFileSync("diff_wg_and_my.csv",diff.join("\n"));
+}
+
+compare_with_time("new_sys");
+// console.log(getDis({x: 30.466259, y: 114.47865},{x: 30.477831, y: 114.413693}) / 1000);

@@ -42,8 +42,8 @@ function analyzeSite(arr) {
       site[i[0].toString()] = {};
     }
     let now = i.slice(2);
-    now[1] = now[1] / (Math.PI) * 180;
-    now[2] = now[2] / (Math.PI) * 180;
+    // now[1] = now[1] / (Math.PI) * 180;
+    // now[2] = now[2] / (Math.PI) * 180;
     site[i[0].toString()][i[1].toString()] = now;
   }
 
@@ -55,8 +55,7 @@ function analyzeGroup(str) {
   let ret = [];
   for(let i = 0; i < arr.length; ++i) {
     const narr = arr[i].split("\"");
-    const list = narr[1].split(/\D/).slice(0,-1);
-    console.log(list);
+    const list = narr[1].split(/\D/).slice(0, -1);
     ret.push(list);
   }
   return ret;
@@ -66,6 +65,9 @@ function raw2input(val, site) {
   if(site[val[2]] == undefined || site[val[2]][val[3]] == undefined) {
     return null;
   }
+  if(site[val[2]][val[3]][3] == undefined) {
+    site[val[2]][val[3]][3] = 0;
+  }
   let nowStr = {};
   nowStr["node"] = val[8];
   nowStr["datetime"] = val[0];
@@ -73,6 +75,7 @@ function raw2input(val, site) {
   nowStr["signal_strength"] = parseFloat(val[5]);
   nowStr["longitude"] = parseFloat(site[val[2]][val[3]][1]);
   nowStr["latitude"] = parseFloat(site[val[2]][val[3]][2]);
+  ++site[val[2]][val[3]][3];
   return nowStr;
 }
 
@@ -114,15 +117,17 @@ function biject(val) {
   return ret;
 }
 
-function app(name) {
-  let siteArr = csv2arr(fs.readFileSync("sitedata.csv", 'utf-8'));
-  let rawArr = csv2arr(fs.readFileSync("rawdata.csv",'utf-8'));
-  let groupStr = fs.readFileSync("groupdata_" + name + ".csv",'utf-8'); // Column 9
+function app(infoDataName, groupDataName) {
+  let siteArr = csv2arr(fs.readFileSync("sitedata_" + infoDataName + ".csv", 'utf-8'));
+  let rawArr = csv2arr(fs.readFileSync("rawdata_" + infoDataName + ".csv",'utf-8'));
+  let groupStr = fs.readFileSync("groupdata_" + infoDataName + "_" + groupDataName + ".csv", 'utf-8'); // Column 9
 
   const site = analyzeSite(siteArr);
   const group = analyzeGroup(groupStr);
+  const groupArr = csv2arr(groupStr);
   const groupIndex = biject(rawArr);
   let ans = [];
+  let ori = [];
   for(let i = 0; i < group.length; ++i) {
     let now = [];
     for(let j = 0; j < group[i].length; ++j) {
@@ -133,14 +138,15 @@ function app(name) {
         }
       }
     }
-    console.log(now.length);
     if(now.length < 3) {
       continue;
     }
+    ori.push(groupArr[i]);
     ans.push(JSON.stringify(now));
   }
-  fs.writeFileSync("input_0316" + name + ".csv",ans.join("\n"));
+  console.log(site);
+  fs.writeFileSync("input_" + infoDataName + "_" + groupDataName + ".csv",ans.join("\n"));
+  // fs.writeFileSync("groupdata_with_ans_" + name + ".csv",ori.join("\n"));
 }
 
-app("base");
-app("li");
+app("0819", "res")
